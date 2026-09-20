@@ -1449,7 +1449,7 @@ class BucketManager:
         # 排序 key 直接从 matched_in 读, 不污染 bucket dict 额外字段。
         if self.keyword_first_sort:
             scored.sort(
-                key=lambda x: ("title" in x.get("matched_in", []), x["score"]),
+                key=lambda x: (bool(x.get("matched_in", [])), x["score"]),
                 reverse=True,
             )
         else:
