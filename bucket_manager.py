@@ -1340,6 +1340,18 @@ class BucketManager:
             # 自动注入里只认 title 强命中, 不靠模糊/正文/情感/语义命中占记忆位。
             # (前端"钉选"= protected OR highlight, server.py:1697; 精准按桶名搜仍可达)
             pinned_like = is_protected(meta) or is_highlighted(meta)
+            q_exact = (query or "").strip().lower()
+            if len(q_exact) >= 2:
+                name_l = str(meta.get("name") or "").lower()
+                tags_l = " ".join(meta.get("tags") or []).lower()
+                domain_l = " ".join(meta.get("domain") or []).lower()
+                content_l = str(bucket.get("content") or "").lower()
+                if any(q_exact in f for f in (name_l, tags_l, domain_l, content_l)):
+                    bucket["score"] = 100.0
+                    bucket["matched_in"] = ["exact"]
+                    bucket["field_scores"] = {"exact": 100}
+                    scored.append(bucket)
+                    continue
 
             try:
                 # precise_match_mode: 走严格 token 命中, 砍 emotion/time/importance/warmth
